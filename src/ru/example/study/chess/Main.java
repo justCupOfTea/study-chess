@@ -1,5 +1,9 @@
 package ru.example.study.chess;
 
+import ru.example.study.chess.command.Command;
+import ru.example.study.chess.command.CommandType;
+import ru.example.study.chess.command.ParserCommand;
+
 import java.util.Scanner;
 
 /**
@@ -20,41 +24,37 @@ public class Main {
         System.out.println();
         board.printBoard();
         while (true) {
-            String s = scanner.nextLine();
-            if (s.equals("exit")) break;
-            else if (s.equals("replay")) {
+            Command command = ParserCommand.parse(scanner.nextLine());
+            if (command == null) {
+                System.out.println("Вы что-то ввели не так, попробуйте ещё раз");
+            } else if (command.getCommandType() == CommandType.EXIT) {
+                break;
+            } else if (command.getCommandType() == CommandType.REPLAY) {
                 System.out.println("Заново");
                 board = ChessBoard.createBoard();
                 board.printBoard();
             } else {
-                if (s.equals("castling0")) {
+                if (command.getCommandType() == CommandType.CASTLING_0) {
                     if (board.castling0()) {
                         System.out.println("Рокировка удалась");
                         board.printBoard();
                     } else {
                         System.out.println("Рокировка не удалась");
                     }
-                } else if (s.equals("castling7")) {
+                } else if (command.getCommandType() == CommandType.CASTLING_7) {
                     if (board.castling7()) {
                         System.out.println("Рокировка удалась");
                         board.printBoard();
                     } else {
                         System.out.println("Рокировка не удалась");
                     }
-                } else if (s.contains("move")) {
-                    String[] a = s.split(" ");
-                    try {
-                        int line = Integer.parseInt(a[1]);
-                        int column = Integer.parseInt(a[2]);
-                        int toLine = Integer.parseInt(a[3]);
-                        int toColumn = Integer.parseInt(a[4]);
-                        if (board.moveToPosition(line, column, toLine, toColumn)) {
-                            System.out.println("Успешно передвинулись");
-                            board.prepareFirstMovePiece(toLine, toColumn);
-                            board.printBoard();
-                        } else System.out.println("Передвижение не удалось");
-                    } catch (Exception e) {
-                        System.out.println("Вы что-то ввели не так, попробуйте ещё раз");
+                } else if (command.getCommandType() == CommandType.MOVE) {
+                    if (board.moveToPosition(command.getLine(), command.getColumn(), command.getToLine(), command.getToColumn())) {
+                        System.out.println("Успешно передвинулись");
+                        board.prepareFirstMovePiece(command.getToLine(), command.getToColumn());
+                        board.printBoard();
+                    } else {
+                        System.out.println("Передвижение не удалось");
                     }
                 }
             }
